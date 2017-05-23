@@ -26,16 +26,17 @@ env:
     - BASH_SOURCE=/usr/local/bin/virtualenvwrapper.sh
     - PARALLEL=2
   matrix:
-    - SNIPPET_LANGUAGE=java6
-    - SNIPPET_LANGUAGE=java7
-    - SNIPPET_LANGUAGE=python:curl
-    - SNIPPET_LANGUAGE=php:ruby
+    # - SNIPPET_LANGUAGE=java6
+    # - SNIPPET_LANGUAGE=java7
+    # - SNIPPET_LANGUAGE=python:curl
+    # - SNIPPET_LANGUAGE=php:ruby
 
 matrix:
   include:
     - language: csharp
       mono: latest
-      env: SNIPPET_LANGUAGE=csharp:node
+      env: SNIPPET_LANGUAGE=csharp
+      # env: SNIPPET_LANGUAGE=csharp:node
 
 addons:
   hosts:
