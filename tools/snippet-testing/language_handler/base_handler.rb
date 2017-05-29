@@ -85,8 +85,10 @@ module LanguageHandler
       output_xml =  "#{File.dirname(@input_file)}/output/#{File.basename(@input_file).split('.').first}.xml"
       assert_output = false
       File.open(output_xml, 'r') do |file|
-        @current_sample = file.read.gsub(/\r|\n|\t|\s{2,}/, '')
-        assert_output = @current_sample == output.chomp
+        @current_sample = file.read.gsub(/\r|\n|\t/, '')
+                                   .gsub(/(?<=\>)\s+|\s+(?=\<)/, '')
+                                   .squeeze(' ')
+        assert_output = @current_sample == output.gsub(/\r|\n|\t/, '').chomp
       end
       assert_output
     end
