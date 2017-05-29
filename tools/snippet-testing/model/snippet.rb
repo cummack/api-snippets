@@ -13,11 +13,11 @@ module Model
       curl:   [LanguageHandler::Curl::LANG_CNAME, LanguageHandler::CurlXml::LANG_CNAME, LanguageHandler::CurlJson::LANG_CNAME]
     }.freeze
 
-    attr_reader :output_folder, :relative_folder, :source_folder, :type, :testable, :name, :langs, :available_langs
+    attr_reader :output_folder, :relative_folder, :source_folder, :type, :testable, :name, :langs, :available_langs, :test_output
 
     alias testable? testable
 
-    def initialize(meta_json_path, test_model)
+    def initialize(meta_json_path, test_model, test_output)
       @server_languages = get_valid_server_languages
       @source_folder    = File.dirname(meta_json_path)
       @relative_folder  = @source_folder.sub(test_model.root_source_folder,"")
@@ -28,6 +28,7 @@ module Model
       @type             = json_object.fetch('type', 'server').downcase
       @langs            = @type == 'server' ? @server_languages : []
       @testable         = false unless @type == 'server'
+      @test_output      = @relative_folder.start_with? '/twiml' || test_output
       @available_langs  = {}
 
       Dir.glob("#{source_folder}/**") do |file|

@@ -17,6 +17,7 @@ module LanguageHandler
     def initialize(dependencies_directory = Dir.pwd, dependencies = [])
       @dependencies_directory = dependencies_directory
       @dependencies = dependencies
+      @snippet_output = {}
     end
 
     def replace_and_relocate(snippet, lang)
@@ -26,7 +27,9 @@ module LanguageHandler
       write_content(content, output_file)
     end
 
-    def test_snippet(snippet_model)
+    def test_snippet(snippet_model, test_output)
+      @input_file = snippet_model.get_input_file(lang_cname)
+      @test_output = test_output
       path = snippet_model.get_output_file(lang_cname)
       execute(path)
     end
@@ -53,18 +56,39 @@ module LanguageHandler
       exit_code = check_process_success(pid, command)
       wout.close
       werr.close
-      success = exit_code.zero? && language_conditional(rout)
+      output = rout.read
+      success = exit_code.zero? && check_stdout(output) && language_conditional(rout)
 
       if success
         puts "success [#{lang_cname}]".green
       else
         puts "failure [#{lang_cname}]".red
         error_message = rerr.read
+
+        if @test_output
+          error_message += "\ndiff:".red
+          error_message += "\n  sample: #{ @current_sample }"
+          error_message += "\n  output: #{ output.chomp }"
+        end
+
         ErrorLogger.instance.add_error(file, error_message, ErrorLogger::ERROR)
       end
+
       rout.close
       rerr.close
       success
+    end
+
+    def check_stdout(output)
+      return true unless @test_output
+
+      output_xml =  "#{File.dirname(@input_file)}/output/#{File.basename(@input_file).split('.').first}.xml"
+      assert_output = false
+      File.open(output_xml, 'r') do |file|
+        @current_sample = file.read.gsub(/\r|\n|\t|\s{2,}/, '')
+        assert_output = @current_sample == output.chomp
+      end
+      assert_output
     end
 
     def check_process_success(pid, command)
