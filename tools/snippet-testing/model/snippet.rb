@@ -17,7 +17,7 @@ module Model
 
     alias testable? testable
 
-    def initialize(meta_json_path, test_model, test_output)
+    def initialize(meta_json_path, test_model)
       @server_languages = get_valid_server_languages
       @source_folder    = File.dirname(meta_json_path)
       @relative_folder  = @source_folder.sub(test_model.root_source_folder,"")
@@ -28,7 +28,7 @@ module Model
       @type             = json_object.fetch('type', 'server').downcase
       @langs            = @type == 'server' ? @server_languages : []
       @testable         = false unless @type == 'server'
-      @test_output      = @relative_folder.start_with? '/twiml' || test_output
+      @test_output      = json_object.fetch('test_output', test_model.test_output)
       @available_langs  = {}
 
       Dir.glob("#{source_folder}/**") do |file|

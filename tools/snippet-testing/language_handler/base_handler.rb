@@ -27,9 +27,9 @@ module LanguageHandler
       write_content(content, output_file)
     end
 
-    def test_snippet(snippet_model, test_output)
+    def test_snippet(snippet_model)
       @input_file = snippet_model.get_input_file(lang_cname)
-      @test_output = test_output
+      @test_output = snippet_model.test_output
       path = snippet_model.get_output_file(lang_cname)
       execute(path)
     end

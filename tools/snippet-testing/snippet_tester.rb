@@ -15,12 +15,11 @@ class SnippetTester
     puts 'Dependencies installed!'
   end
 
-  def initialize(parent_source_folder, test_default = false, test_output = false)
+  def initialize(parent_source_folder, test_default = false)
     @parent_source_folder = parent_source_folder
     Dir.chdir(@parent_source_folder)
     puts "Base folder is #{@parent_source_folder}"
     @snippet_models = []
-    @test_output = test_output
     @test_models = [
       Model::TestSession.new(@parent_source_folder, nil, test_default)
     ]
@@ -49,7 +48,7 @@ class SnippetTester
     @snippet_models.each do |snippet|
       puts "Testing #{snippet.output_folder}"
       snippet.available_langs.each do |lang, _file_name|
-        @language_handlers.fetch(lang).test_snippet(snippet, @test_output)
+        @language_handlers.fetch(lang).test_snippet(snippet)
       end
     end
   end
@@ -164,7 +163,7 @@ class SnippetTester
 
   def import_existing_snippet(source_folder, test_model)
     Dir.glob("#{source_folder}#{File::SEPARATOR}meta.json") do |json_file|
-      snippet_model = Model::Snippet.new(json_file.to_s, test_model, @test_output)
+      snippet_model = Model::Snippet.new(json_file.to_s, test_model)
       next unless snippet_model.testable?
       # Add this model to those to be tested
       puts snippet_model
@@ -192,7 +191,6 @@ def parse_options(args)
   options.source_folder = Dir.pwd
   options.install = false
   options.test_default = nil
-  options.test_output = false
 
   opts = OptionParser.new do |opts|
     opts.banner = 'Usage: ruby snippet_tester.rb [options]'
@@ -211,7 +209,6 @@ def parse_options(args)
     opts.on('-d directory', String, 'Specify a directory to be tested') do |dir|
       options.source_folder = File.expand_path(dir)
       options.test_default = true if options.test_default.nil?
-      options.test_output = dir.start_with? 'twiml'
     end
   end
 
@@ -222,7 +219,7 @@ end
 if __FILE__ == $0
   begin
     options = parse_options(ARGV)
-    tester = SnippetTester.new(options.source_folder, options.test_default, options.test_output)
+    tester = SnippetTester.new(options.source_folder, options.test_default)
 
     tester.install_dependencies if options.install
     tester.init
