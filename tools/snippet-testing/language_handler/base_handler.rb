@@ -17,7 +17,6 @@ module LanguageHandler
     def initialize(dependencies_directory = Dir.pwd, dependencies = [])
       @dependencies_directory = dependencies_directory
       @dependencies = dependencies
-      @snippet_output = {}
     end
 
     def replace_and_relocate(snippet, lang)
@@ -57,7 +56,7 @@ module LanguageHandler
       wout.close
       werr.close
       output = rout.read
-      success = exit_code.zero? && check_stdout(output) && language_conditional(rout)
+      success = exit_code.zero? && assert_output(output) && language_conditional(rout)
 
       if success
         puts "success [#{lang_cname}]".green
@@ -79,16 +78,14 @@ module LanguageHandler
       success
     end
 
-    def check_stdout(output)
+    def assert_output(output)
       return true unless @test_output
 
       output_xml =  "#{File.dirname(@input_file)}/output/#{File.basename(@input_file).split('.').first}.xml"
       assert_output = false
       File.open(output_xml, 'r') do |file|
-        @current_sample = file.read.gsub(/\r|\n|\t/, '')
-                                   .gsub(/(?<=\>)\s+|\s+(?=\<)/, '')
-                                   .squeeze(' ')
-        assert_output = @current_sample == output.gsub(/\r|\n|\t/, '').chomp
+        @current_sample = file.read
+        assert_output = XmlMatcher.match(@current_sample, output)
       end
       assert_output
     end
